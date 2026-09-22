@@ -9,7 +9,7 @@ LOG="$HOME/git_backup.log"
 LOCK="/tmp/git_backup.lock"
 
 # ==============================
-# FUNCIÓN PARA REGISTRAR LOG
+# FUNCIÓN DE LOG
 # ==============================
 
 log() {
@@ -28,7 +28,7 @@ if ! flock -n 200; then
 fi
 
 # ==============================
-# VALIDAR REPOSITORIO
+# 1. VALIDAR REPOSITORIO
 # ==============================
 
 if [ ! -d "$REPO" ]; then
@@ -41,7 +41,6 @@ cd "$REPO" || {
     exit 1
 }
 
-# Comprobar que realmente sea un repositorio Git
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log "ERROR: la carpeta no es un repositorio Git."
     exit 1
@@ -61,7 +60,7 @@ fi
 log "Repositorio y rama validados correctamente: main"
 
 # ==============================
-# DETECTAR CAMBIOS
+# 2. DETECTAR CAMBIOS
 # ==============================
 
 if [ -n "$(git status --porcelain)" ]; then
@@ -69,7 +68,7 @@ if [ -n "$(git status --porcelain)" ]; then
     log "Se detectaron cambios."
 
     # ==============================
-    # AGREGAR CAMBIOS
+    # 3. AGREGAR CAMBIOS
     # ==============================
 
     if ! git add -A; then
@@ -79,17 +78,10 @@ if [ -n "$(git status --porcelain)" ]; then
 
     log "Cambios agregados al área de preparación."
 
-    # ==============================
-    # COMPROBAR SI REALMENTE HAY CAMBIOS
-    # ==============================
-
+    # Evitar commits vacíos
     if git diff --cached --quiet; then
         log "No hay cambios para realizar commit."
     else
-
-        # ==============================
-        # CREAR COMMIT
-        # ==============================
 
         FECHA=$(date '+%Y-%m-%d %H:%M:%S')
         MENSAJE="Actualización automática - $FECHA"
@@ -107,7 +99,7 @@ else
 fi
 
 # ==============================
-# PUSH
+# 4. PUSH
 # ==============================
 
 if git push; then
@@ -117,5 +109,10 @@ else
     exit 1
 fi
 
+# ==============================
+# FINALIZAR
+# ==============================
+
 log "Ejecución finalizada correctamente."
+
 exit 0
